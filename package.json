@@ -42,5 +42,9 @@
     "url": "https://github.com/tim901231/socket/issues"
   },
   "homepage": "https://github.com/tim901231/socket#readme",
-  "type": "module"
+  "type": "module",
+  "engines": {
+    "node": "16.13.0",
+    "npm": "8.3.1"
+  }
 }
