@@ -75,6 +75,212 @@ db.once("open", () => {
         io.emit("addRoom", { msg: "failed", gameId: "" });
       }
     });
+    socket.on("inviteJoinRoom", async ({ friendId, roomId }) => {
+      console.log(`invite ${friendId} joinRoom`);
+      //console.log(userId);
+      const game = await Game.findOne({ id: roomId });
+      const user = await User.findOne({ userId: friendId });
+      if (friendId === null) {
+        console.log("Player doesn't exist.");
+        io.emit("addRoom", { msg: "failed", gameId: "" });
+        return;
+      }
+      if (game.players.length < 4) {
+        if (user.gameId === "") {
+          console.log("succuessfully invite join room");
+          socket.join(roomId);
+
+          io.emit("addRoom", { msg: "successful", gameId: roomId });
+          game.players.push({
+            playerId: friendId,
+            playerHand: [],
+            playerJob: 0,
+          });
+          console.log(game);
+          game.save();
+          user.gameId = roomId;
+          user.save();
+          const { player, difficulty } = game;
+          io.to(roomId).emit("room", { player, difficulty });
+        } else {
+          console.log("Player already in game");
+          io.emit("addRoom", { msg: "failed", gameId: "" });
+        }
+      } else {
+        console.log("Player already full");
+        io.emit("addRoom", { msg: "failed", gameId: "" });
+      }
+    });
+    socket.on("move", async ({ gameId, city }) => {
+      console.log("move");
+      const data = await Game.findOne({ id: gameId });
+      if (!data) {
+        return;
+      }
+      console.log(data);
+      if (data.leftMove === 1) {
+        data.players[data.who].pos = city;
+        data.leftMove = 4;
+        data.who = (data.who + 1) % 4;
+        data.players[data.who].playerHand.push(data.playerDeck.pop());
+        data.players[data.who].playerHand.push(data.playerDeck.pop());
+        data.save();
+        io.to(gameId).emit("gameDetail", data);
+      } else {
+        data.players[data.who].pos = city;
+        data.leftMove = data.leftMove - 1;
+        data.save();
+        io.to(gameId).emit("gameDetail", data);
+      }
+    });
+    socket.on("fly", async ({ gameId, city }) => {
+      console.log("fly");
+      const data = await Game.findOne({ id: gameId });
+      if (!data) {
+        return;
+      }
+      console.log(data);
+      if (data.leftMove === 1) {
+        data.players[data.who].pos = city;
+        data.players[data.who].playerHand = data.players[
+          data.who
+        ].playerHand.filter((item) => item !== city);
+        data.leftMove = 4;
+        data.who = (data.who + 1) % 4;
+        data.players[data.who].playerHand.push(data.playerDeck.pop());
+        data.players[data.who].playerHand.push(data.playerDeck.pop());
+        data.save();
+        io.to(gameId).emit("gameDetail", data);
+      } else {
+        data.players[data.who].pos = city;
+        data.players[data.who].playerHand = data.players[
+          data.who
+        ].playerHand.filter((item) => item !== city);
+        data.leftMove = data.leftMove - 1;
+        data.save();
+        io.to(gameId).emit("gameDetail", data);
+      }
+    });
+    socket.on("flyfrom", async ({ gameId, city }) => {
+      console.log("flyrom");
+      const data = await Game.findOne({ id: gameId });
+      if (!data) {
+        return;
+      }
+      console.log(data);
+      if (data.leftMove === 1) {
+        data.players[data.who].playerHand = data.players[
+          data.who
+        ].playerHand.filter((item) => item !== data.players[data.who].pos);
+        data.players[data.who].pos = city;
+        data.leftMove = 4;
+        data.who = (data.who + 1) % 4;
+        data.players[data.who].playerHand.push(data.playerDeck.pop());
+        data.players[data.who].playerHand.push(data.playerDeck.pop());
+        data.save();
+        io.to(gameId).emit("gameDetail", data);
+      } else {
+        data.players[data.who].playerHand = data.players[
+          data.who
+        ].playerHand.filter((item) => item !== data.players[data.who].pos);
+        data.players[data.who].pos = city;
+        data.leftMove = data.leftMove - 1;
+        data.save();
+        io.to(gameId).emit("gameDetail", data);
+      }
+    });
+    socket.on("lab", async ({ gameId, city }) => {
+      console.log("lab");
+      const data = await Game.findOne({ id: gameId });
+      if (!data) {
+        return;
+      }
+      console.log(data);
+      if (data.leftMove === 1) {
+        // data.players[data.who].pos = city;
+        data.players[data.who].playerHand = data.players[
+          data.who
+        ].playerHand.filter((item) => item !== data.players[data.who].pos);
+        data.lab.push(data.players[data.who].pos);
+        data.leftMove = 4;
+        data.who = (data.who + 1) % 4;
+        data.players[data.who].playerHand.push(data.playerDeck.pop());
+        data.players[data.who].playerHand.push(data.playerDeck.pop());
+        data.save();
+        io.to(gameId).emit("gameDetail", data);
+      } else {
+        // data.players[data.who].pos = city;
+        data.players[data.who].playerHand = data.players[
+          data.who
+        ].playerHand.filter((item) => item !== data.players[data.who].pos);
+        data.lab.push(data.players[data.who].pos);
+        data.leftMove = data.leftMove - 1;
+        data.save();
+        io.to(gameId).emit("gameDetail", data);
+      }
+    });
+    socket.on("lab", async ({ gameId, city }) => {
+      console.log("lab");
+      const data = await Game.findOne({ id: gameId });
+      if (!data) {
+        return;
+      }
+      console.log(data);
+      if (data.leftMove === 1) {
+        // data.players[data.who].pos = city;
+        data.players[data.who].playerHand = data.players[
+          data.who
+        ].playerHand.filter((item) => item !== data.players[data.who].pos);
+        data.lab.push(data.players[data.who].pos);
+        data.leftMove = 4;
+        data.players[data.who].playerHand.push(data.playerDeck.pop());
+        data.players[data.who].playerHand.push(data.playerDeck.pop());
+        data.who = (data.who + 1) % 4;
+        data.save();
+        io.to(gameId).emit("gameDetail", data);
+      } else {
+        // data.players[data.who].pos = city;
+        data.players[data.who].playerHand = data.players[
+          data.who
+        ].playerHand.filter((item) => item !== data.players[data.who].pos);
+        data.lab.push(data.players[data.who].pos);
+        data.leftMove = data.leftMove - 1;
+        data.save();
+        io.to(gameId).emit("gameDetail", data);
+      }
+    });
+    socket.on("treat", async ({ gameId, city }) => {
+      console.log("treat");
+      const data = await Game.findOne({ id: gameId });
+      if (!data) {
+        return;
+      }
+      console.log(data);
+      if (data.leftMove === 1) {
+        // data.players[data.who].pos = city;
+        console.log(data.virus);
+        console.log(data.players[data.who].pos);
+        if (data.virus[data.players[data.who].pos] > 0) {
+          data.virus[data.players[data.who].pos] =
+            data.virus[data.players[data.who].pos] - 1;
+        }
+        data.leftMove = 4;
+        data.who = (data.who + 1) % 4;
+        data.players[data.who].playerHand.push(data.playerDeck.pop());
+        data.players[data.who].playerHand.push(data.playerDeck.pop());
+        data.save();
+        io.to(gameId).emit("gameDetail", data);
+      } else {
+        // data.players[data.who].pos = city;
+        if (data.virus[data.players[data.who].pos] > 0) {
+          data.virus[data.players[data.who].pos] =
+            data.virus[data.players[data.who].pos] - 1;
+        }
+        data.leftMove = data.leftMove - 1;
+        data.save();
+        io.to(gameId).emit("gameDetail", data);
+      }
+    });
     socket.on("queryGame", async (gameId) => {
       console.log("data queried");
       console.log(gameId);
@@ -83,6 +289,7 @@ db.once("open", () => {
         return;
       }
       console.log(data);
+      socket.join(gameId);
       io.emit("gameDetail", data);
     });
     socket.on("startGame", (gameId) => {
@@ -95,7 +302,7 @@ db.once("open", () => {
       console.log("a user disconnected");
     });
   });
-  const PORT = process.env.PORT || 5000;
+  const PORT = process.env.port || 5000;
   server.listen(PORT, () => {
     console.log(`Server is up on port ${PORT}.`);
   });
