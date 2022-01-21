@@ -302,7 +302,7 @@ db.once("open", () => {
       console.log("a user disconnected");
     });
   });
-  const PORT = process.env.port || 5000;
+  const PORT = process.env.PORT || 5000;
   server.listen(PORT, () => {
     console.log(`Server is up on port ${PORT}.`);
   });
